@@ -1,0 +1,62 @@
+MysqlDatabase: ****
+MysqlUser: ****
+MysqlPassword: ******
+MysqlHost: ********
+
+# for add user manage slurm jobs
+adminName: ******
+adminEmail: **************
+adminPasswd: ******
+
+#dataDir: /home/deng/data
+#toolsFile: /home/deng/tools_file
+
+dataDir: /home/deng/shaoxia/data/
+
+tempImageDir: /home/deng/shaoxia/tmpImg
+
+slurmJobLogPath: /home/deng/shaoxia/slurm_job_logs
+slurmJobScriptPath: /home/deng/shaoxia/slurm_job_scripts
+slurmPartition: defaults
+
+slurmDatabase: ****
+slurmUser: *****
+slurmPassword: ********
+slurmHost: *********
+
+############################## downstream analysis config #####################
+
+cellRangerPath: /home/deng/10X/cellranger-6.1.2/cellranger
+humanTranscriptomePath: /home/deng/10X/refdata-gex-GRCh38-2020-A
+mounseTranscriptomePath: /home/deng/10X/refdata-gex-mm10-2020-A
+
+gene_order_file: /home/deng/10X/hg38_gencode_v27.txt
+inferCnvResultPath: /home/deng/downstream/inferCNV
+
+correlationResultPath: /home/deng/downstream/correlation
+
+cellCycleResultPath: /home/deng/downstream/cell_cycle
+
+cellFrequencyResultPath: /home/deng/downstream/cell_frequency
+
+enrichmentResultPath: /home/deng/downstream/enrichment
+
+geneSetGmtFilePath: /home/deng/gene_set_gmt/
+gseaSoftwarePath: /home/deng/GSEA_4.3.2/gsea-cli.sh
+gseaResultPath: /home/deng/downstream/gsea
+gsvaResultPath: /home/deng/downstream/gsva
+
+trajectoryResultPath: /home/deng/downstream/trajectory
+
+velocityResultPath: /home/deng/downstream/velocity
+
+communicationResultPath: /home/deng/downstream/communication
+
+grnResourceFilePath: /home/deng/scenic_resource_file/
+regulatoryResultPath: /home/deng/downstream/regulatory
+
+
+
+
+
+

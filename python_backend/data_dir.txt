@@ -1,0 +1,75 @@
+__data
+  |
+  |__temp_images # 存储临时图片
+  |
+  |__upload
+  |  |
+  |  |__user_id_random5 # 保存上传数据
+  |
+  |__upstream
+  |  |
+  |  |__cellranger
+  |  |  |
+  |  |  |__user_id_random5 # 保存 reads_mapping_result generate_loom
+  |  |
+  |  |__seurat # 保存 指控前后的图片、ElbowPlot、DimPlot of seurat_clusters
+  |     |
+  |     |__user_id_random5 # 保存 指控前后的图片、ElbowPlot、DimPlot of seurat_clusters
+  |    
+  |__annotation
+  |  |
+  |  |__tyep
+  |  |  |
+  |  |  |__user_id_random5 # 保存 DimPlot of seurat_clusters, Dimplot of check_cluster, marker_vlnPlot, marker_heatmap_plot
+  |  |  
+  |  |__subtype
+  |     |
+  |     |__user_id_random5 # 保存 DimPlot of seurat_clusters, Dimplot of check_cluster, marker_vlnPlot, marker_heatmap_plot
+  |
+  |__downstream
+    |  
+    |__infereCNV
+    |  |
+    |  |__user_id_random5
+    |  
+    |__pearson_correlation
+    |  |
+    |  |__user_id_random5
+    |  
+    |__cell_cycle_score
+    |  |
+    |  |__user_id_random5
+    |  
+    |__cell_frequency
+    |  |
+    |  |__user_id_random5
+    |  
+    |__enrichment
+    |  |
+    |  |__user_id_random5
+    |  
+    |__GSEA
+    |  |
+    |  |__user_id_random5
+    |  
+    |__GSVA
+    |  |
+    |  |__user_id_random5
+    |  
+    |__velocity
+    |  |
+    |  |__user_id_random5
+    |  
+    |__trajectory
+    |  |
+    |  |__user_id_random5
+    |  
+    |__cell_communication
+    |  |
+    |  |__user_id_random5
+    |  
+    |__GRN
+       |
+       |__user_id_random5
+
+

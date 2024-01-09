@@ -1,0 +1,21 @@
+__tools_file
+  |
+  |__inferCNV
+  |  |
+  |  |__hg38_gencode_v27.txt
+  |
+  |__refdata-gex-GRCh38-2020-A
+  |  
+  |__refdata-gex-mm10-2020-A
+  |
+  |__cellranger
+  |
+  |__GSEA_java
+  |
+  |__gene_set_gmt
+  |
+  |__cellphoneDB_files
+  |
+  |__scien_files
+
+
