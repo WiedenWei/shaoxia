@@ -158,7 +158,7 @@ const upRNAqc = () => {
         <p>Enter data index in "for quality control" table to quality control:
           <input type="text" v-model="data_index"> 
         </p>
-        <h3>qulity control parameters: </h3>
+        <h3>quality control parameters: </h3>
           <p>lower limiting number of genes that detected in a cell: 
               <input type="text" v-model="LowGene">
           </p>
