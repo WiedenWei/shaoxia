@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 from shutil import rmtree
 from scripts import (
     cellranger_script, r_script_inferCNV, downstream_bash,
-    r_script_correlation, r_script_GSEA, r_script_trajectory,
+    r_script_correlation, r_script_GSEA, r_script_trajectory_monocle2, r_script_trajectory_monocle3,
     generate_loom_script, r_script_cellphoneDB, read_loom_r_code,
     r_script_velocity, seurat_DoHeatmap, seurat_VlnPlot,
     r_script_cell_frequency, r_script_enrichment, py_script_velocity,
@@ -2939,7 +2939,7 @@ async def scRNA_subtype_dc(request):
         if data["token"] != logined_user[data["user_id"]]:
             return web.Response(text="token error!", status=401)
     
-    if data["is_combined"] != "Y":
+    if data["is_combined"] == "Y":
         rbaseName = "project.combined"
     else:
         rbaseName = 'seurat_'+str(data["data_id"])
@@ -5996,9 +5996,10 @@ async def scRNA_trajectory(request):
     trajectory_r_code = ''
     if str(data["anno_subcluster_id"]) == '-':
         if str(data["combined_id"]) != '-':
-            trajectory_r_code = 'Idents(project.combined) <- "check_clusters"\n'+\
-            'cell.use <- WhichCells(project.combined, idents = "'+str(data["root_cells"])+'")\n'+\
-            '''
+            if str(data["analysis_type"]) == "monocle3":
+                trajectory_r_code = 'Idents(project.combined) <- "check_clusters"\n'+\
+                'cell.use <- WhichCells(project.combined, idents = "'+str(data["root_cells"])+'")\n'+\
+                r'''
 cds <- as.cell_data_set(project.combined)
 cds <- cluster_cells(cds)
 cds <- learn_graph(cds)
@@ -6009,13 +6010,44 @@ p <- plot_cells(cds, color_cells_by = "pseudotime", label_cell_groups = FALSE, l
 ggsave(filename = "trajectory.png", plot=p,width = 12, height = 8,dpi=600,limitsize = F)
 
             '''
+            else: # str(data["analysis_type"]) == "monocle2":
+                trajectory_r_code = 'DefaultAssay(project.combined) <- "RNA"\n'+\
+                'project.combined <- FindVariableFeatures(project.combined)\n'+\
+                'cds_ordering_genes <- VariableFeatures(project.combined, assay = "RNA")[ 1:'+str(data["nvfeatures"])+']\n'+\
+                r'''
+data <- as(as.matrix(project.combined@assays$RNA@counts), 'sparseMatrix')
+pd <- new('AnnotatedDataFrame', data = project.combined@meta.data)
+fData <- data.frame(gene_short_name = row.names(data), row.names = row.names(data))
+fd <- new('AnnotatedDataFrame', data = fData)
+cds <- newCellDataSet(cellData=data,
+                      phenoData = pd,
+                      featureData = fd)
+cds <- estimateSizeFactors(cds)
+cds <- estimateDispersions(cds)
 
-        else:
-            trajectory_r_code = 'Idents('+rbaseName+') <- "check_clusters"\n'+\
-            'cell.use <- WhichCells('+rbaseName+', idents = "'+str(data["root_cells"])+'")\n'+\
-            'cds <- as.cell_data_set('+rbaseName+')\n'+\
-            'p_seurat <- DimPlot('+rbaseName+')\n'+\
-            '''
+Idents(project.combined) <- "check_clusters"
+cds <- setOrderingFilter( cds, ordering_genes=cds_ordering_genes )
+cds <- reduceDimension( cds, max_components = 2, reduction_method ="DDRTree" )
+cds <- orderCells(cds)
+cds <- orderCells(cds, root_state = 1)
+
+p_seurat <- DimPlot(project.combined)
+seurat_theme <- p_seurat$theme
+
+p <- plot_cell_trajectory(cds, color_by = "check_clusters") + seurat_theme
+p1 <- plot_cell_trajectory(cds, color_by = "Pseudotime") + seurat_theme
+ggsave(filename = "trajectory.png", plot=p, width = 12, height = 8, dpi=600, limitsize = F)
+ggsave(filename = "pseudotime.png", plot=p1, width = 12, height = 8, dpi=600, limitsize = F)
+'''
+                
+
+        else: # single sample data : str(data["combined_id"]) == '-'
+            if str(data["analysis_type"]) == "monocle3":
+                trajectory_r_code = 'Idents('+rbaseName+') <- "check_clusters"\n'+\
+                'cell.use <- WhichCells('+rbaseName+', idents = "'+str(data["root_cells"])+'")\n'+\
+                'cds <- as.cell_data_set('+rbaseName+')\n'+\
+                'p_seurat <- DimPlot('+rbaseName+')\n'+\
+                r'''
 cds <- cluster_cells(cds)
 cds <- learn_graph(cds)
 cds <- order_cells(cds, root_cells = cell.use)
@@ -6023,9 +6055,40 @@ seurat_theme <- p_seurat$theme
 p <- plot_cells(cds, color_cells_by = "pseudotime", label_cell_groups = FALSE, label_leaves = FALSE, label_branch_points = FALSE) + seurat_theme
 ggsave(filename = "trajectory.png", plot=p,width = 12, height = 8,dpi=600,limitsize = F)            
             '''
+            else: # str(data["analysis_type"]) == "monocle2"
+                trajectory_r_code = 'Idents('+rbaseName+') <- "check_clusters"\n'+\
+                'DefaultAssay('+rbaseName+') <- "RNA"\n'+\
+                rbaseName + ' <- FindVariableFeatures(project.combined)\n'+\
+                'p_seurat <- DimPlot('+rbaseName+')\n'+\
+                'cds_ordering_genes <- VariableFeatures('+rbaseName+', assay = "RNA")[ 1:'+str(data["nvfeatures"])+']\n'+\
+                'data <- as(as.matrix('+rbaseName+'@assays$RNA@counts), "sparseMatrix")\n'+\
+                'pd <- new("AnnotatedDataFrame", data = '+rbaseName+'@meta.data)\n'+\
+                r'''
+fData <- data.frame(gene_short_name = row.names(data), row.names = row.names(data))
+fd <- new('AnnotatedDataFrame', data = fData)
+cds <- newCellDataSet(cellData=data,
+                      phenoData = pd,
+                      featureData = fd)
+cds <- estimateSizeFactors(cds)
+cds <- estimateDispersions(cds)
+
+cds <- setOrderingFilter( cds, ordering_genes=cds_ordering_genes )
+cds <- reduceDimension( cds, max_components = 2, reduction_method ="DDRTree" )
+cds <- orderCells(cds)
+cds <- orderCells(cds, root_state = 1)
+
+seurat_theme <- p_seurat$theme
+
+p <- plot_cell_trajectory(cds, color_by = "check_clusters") + seurat_theme
+p1 <- plot_cell_trajectory(cds, color_by = "Pseudotime") + seurat_theme
+ggsave(filename = "trajectory.png", plot=p, width = 12, height = 8, dpi=600, limitsize = F)
+ggsave(filename = "pseudotime.png", plot=p1, width = 12, height = 8, dpi=600, limitsize = F)
+'''                
+
     else:# str(data["anno_subcluster_id"]) != '-'
+        if str(data["analysis_type"]) == "monocle3":
             trajectory_r_code = 'cell.use <- WhichCells(subcluster, idents = "'+str(data["root_cells"])+'")\n'+\
-            '''
+            r'''
 cds <- as.cell_data_set(subcluster)
 cds <- cluster_cells(cds)
 cds <- learn_graph(cds)
@@ -6035,9 +6098,44 @@ seurat_theme <- p_seurat$theme
 p <- plot_cells(cds, color_cells_by = "pseudotime", label_cell_groups = FALSE, label_leaves = FALSE, label_branch_points = FALSE) + seurat_theme
 ggsave(filename = "trajectory.png", plot=p,width = 12, height = 8,dpi=600,limitsize = F)
             '''
+        else: #str(data["analysis_type"]) == "monocle2"
+            trajectory_r_code = 'DefaultAssay(subcluster) <- "RNA"\n'+\
+            'subcluster <- FindVariableFeatures(subcluster)\n'+\
+            'cds_ordering_genes <- VariableFeatures(subcluster, assay = "RNA")[ 1:'+str(data["nvfeatures"])+']\n'+\
+            r"""
+data <- as(as.matrix(subcluster@assays$RNA@counts), 'sparseMatrix')
+pd <- new('AnnotatedDataFrame', data = subcluster@meta.data)
+fData <- data.frame(gene_short_name = row.names(data), row.names = row.names(data))
+fd <- new('AnnotatedDataFrame', data = fData)
+cds <- newCellDataSet(cellData=data,
+                      phenoData = pd,
+                      featureData = fd)
+cds <- estimateSizeFactors(cds)
+cds <- estimateDispersions(cds)
+
+Idents(subcluster) <- "check_clusters"
+
+cds <- setOrderingFilter( cds, ordering_genes=cds_ordering_genes )
+cds <- reduceDimension( cds, max_components = 2, reduction_method ="DDRTree" )
+cds <- orderCells(cds)
+cds <- orderCells(cds, root_state = 1)
+
+p_seurat <- DimPlot(subcluster)
+seurat_theme <- p_seurat$theme
+
+p <- plot_cell_trajectory(cds, color_by = "check_clusters") + seurat_theme
+p1 <- plot_cell_trajectory(cds, color_by = "Pseudotime") + seurat_theme
+ggsave(filename = "trajectory.png", plot=p, width = 12, height = 8, dpi=600, limitsize = F)
+ggsave(filename = "pseudotime.png", plot=p1, width = 12, height = 8, dpi=600, limitsize = F)
+"""
+
 
     # 4. generate script file and submit slurm job
-    script = r_script_trajectory.replace("#loadDataRcode", load_data_r_code)
+    if str(data["analysis_type"]) == "monocle3":
+        script = r_script_trajectory_monocle3.replace("#loadDataRcode", load_data_r_code)
+    else:
+        script = r_script_trajectory_monocle2.replace("#loadDataRcode", load_data_r_code)
+
     script = script.replace("#qcRcode", qc_r_code)
     if str(data["combined_id"]) != '-':
         script = script.replace("#combinedRcode", combined_r_code)
