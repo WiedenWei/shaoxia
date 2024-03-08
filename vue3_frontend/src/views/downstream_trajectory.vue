@@ -17,12 +17,28 @@ let errorMessage = ref("")
 let isShowsucess= ref(false)
 let sucessMessage = ref("Operate sucessfully!")
 
+let isShowMonocle2 = ref(false)
+let isShowMonocle3 = ref(false)
+let analysis_type = ref("")
+let NVfeatures = ref("1000")
+
 const clickError = () => {
   isShowError.value = false
 }
 
 const clickSucess = () => {
   isShowsucess.value = false
+}
+
+const change_type = () => {
+  isShowMonocle2.value = false
+  isShowMonocle3.value = false
+
+  if(analysis_type.value == "monocle2"){
+    isShowMonocle2.value = true
+  }else{
+    isShowMonocle3.value = true
+  }
 }
 
 const submit_trajectory = () => {
@@ -49,8 +65,13 @@ const submit_trajectory = () => {
   formData.append("anno_subcluster_id", data.anno_subcluster_id)
   formData.append("anno_subcluster_name", data.anno_subcluster_name)
   formData.append("anno_subcluster_result", data.anno_subcluster_result)
-   
-  formData.append("root_cells", root_cells.value)
+  
+  formData.append("analysis_type", analysis_type.value)
+  if(analysis_type.value == "monocle2") {
+    formData.append("nvfeatures", NVfeatures.value)
+  }else{
+    formData.append("root_cells", root_cells.value)
+  }
 
   axios.post("/downstream/scRNA/trajectory", formData, {
     headers: {
@@ -88,20 +109,38 @@ const submit_trajectory = () => {
     <div class="parameters">
 
       <div class="EnterID">
-          <h3>Data parameters</h3>
-          <p>Enter data index in "for downstream analysis" to do RNA velocity:
-            <input type="text" v-model="data_index">
+        <h3>Data parameters</h3>
+        <p>Enter data index in "for downstream analysis" to do RNA velocity:
+          <input type="text" v-model="data_index">
+        </p>
+        <p>
+          NOTE: trajectory(pseudotime) analysis used to apply for subcluster data.
+        </p>
+
+        <h3>Method selection:</h3>
+        <select v-model="analysis_type" @change="change_type()">
+          <option value="">--Please choose one--</option>
+          <option value="monocle2">monocle2</option>
+          <option value="monocle3">monocle3</option>
+        </select>
+
+        <div v-show="isShowMonocle2">
+          <p>
+            number of variable features: <input type="text" v-model="NVfeatures">
           </p>
+        </div>
+
+        <div v-show="isShowMonocle3">
           <p>
             root cell type: <input type="text" v-model="root_cells">
           </p>
-          <p>
-            NOTE: trajectory analysis used to apply for subcluster data.
-          </p>
-          <p>
-            <input type="button" value="submit" @click="submit_trajectory()">
-          </p>
-          <br>
+        </div>
+
+
+        <p>
+          <input type="button" value="submit" @click="submit_trajectory()">
+        </p>
+        <br>
       </div>
 
       <div v-show="isShowError" class="error">
