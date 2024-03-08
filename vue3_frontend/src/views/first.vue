@@ -10,6 +10,9 @@
           <p>
             It is crafted from scratch, with love.
           </p>
+          <p>
+            For those interested in utilizing Shaoxia, please feel free to contact us via email (to weiweideng0106@gmail.com) to inquire about obtaining an account.
+          </p>
         </div>
     
       </div>
