@@ -7174,6 +7174,76 @@ async def add_user(request):
                         authority = 'user'
                     ))
                 await transaction.commit()
+            """
+            # make public data avaiable for new user
+            res1 = await conn.execute(user.select()
+                .where(user.c.name == name)
+                .where(user.c.email == email)
+            )
+            row1 = await res1.fetchone()
+            async with conn.begin() as transaction:
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_pd164b", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "PD164b",
+                    sequencing_type = "scRNA"
+                ))
+
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_pd170", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "PD170",
+                    sequencing_type = "scRNA"
+                ))
+
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_pd164", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "PD164",
+                    sequencing_type = "scRNA"
+                ))
+
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_gm148", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "GM148",
+                    sequencing_type = "scRNA"
+                ))
+
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_gm169", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "GM169",
+                    sequencing_type = "scRNA"
+                ))
+
+                await conn.execute(upload_data.insert().values(
+                    user_id = row1["id"],
+                    upload_path = "/home/deng/shaoxia/data/upload/pub_gm283", # dir path
+                    species = "human",
+                    tissue = "oral",
+                    data_type = "cellranger",
+                    data_note = "PD164b",
+                    sequencing_type = "scRNA"
+                ))
+
+                await transaction.commit()
+            """
 
             return web.Response(text = "OK")
         else:
